@@ -22,81 +22,163 @@
         </a>
     </header>
 
-    <!-- Main Content - Drop Area -->
+    <!-- Main Content - Upload Area -->
     <main class="flex-1 flex items-center justify-center px-4 sm:px-6 lg:px-8 pb-8">
         <div class="w-full max-w-6xl">
-            <div @ondragover:preventDefault
-                 @ondragenter="HandleDragEnter"
-                 @ondragleave="HandleDragLeave"
-                 @ondrop="HandleDrop"
-                 @ondrop:preventDefault
-                 class="@GetDropZoneClass() relative border-4 border-dashed rounded-2xl transition-all duration-300 cursor-pointer"
+            <div class="bg-white rounded-2xl shadow-xl transition-all duration-300"
                  style="min-height: 60vh;">
 
-                <label for="fileInput" class="absolute inset-0 flex flex-col items-center justify-center space-y-6 cursor-pointer">
-                    <!-- Icon -->
-                    <div class="text-primary-600 transition-transform duration-300 @(isDragging ? "scale-110" : "")">
-                        <i class="fa-solid fa-cloud-arrow-up text-8xl sm:text-9xl"></i>
-                    </div>
-
-                    <!-- Text -->
-                    <div class="text-center space-y-2 px-4">
-                        <h2 class="text-2xl sm:text-3xl font-bold text-text-primary">
-                            @(isDragging ? "Drop your images here" : "Upload Images")
-                        </h2>
-                        <p class="text-base sm:text-lg text-text-secondary max-w-md">
-                            Drag and drop your images here, or click to browse
-                        </p>
-                        <p class="text-sm text-text-muted">
-                            Supported formats: JPG, PNG, GIF, WebP
-                        </p>
-                    </div>
-
-                    <!-- Button -->
-                    @if (!isDragging)
-                    {
-                        <button type="button"
-                                class="mt-4 px-8 py-4 bg-white hover:bg-gray-50 text-primary-600 font-semibold rounded-lg shadow-lg border-2 border-primary-600 transition duration-200 transform hover:scale-[1.02]">
-                            <i class="fa-solid fa-folder-open mr-2"></i>
-                            Browse Files
+                @if (showUploadDetailsPage)
+                {
+                    <div class="flex flex-col p-8 sm:p-12" style="height: 60vh;">
+                        <!-- Back Button -->
+                        <button @onclick="BackToFileList"
+                                class="self-start mb-6 px-4 py-2 text-text-secondary hover:text-primary-600 font-medium transition duration-200 flex items-center space-x-2">
+                            <i class="fa-solid fa-arrow-left"></i>
+                            <span>Back</span>
                         </button>
-                    }
-                </label>
 
-                <!-- Hidden File Input -->
-                <InputFile id="fileInput"
-                          OnChange="HandleFileSelected"
-                          multiple
-                          accept="image/*"
-                          class="hidden" />
-            </div>
+                        <h3 class="text-xl sm:text-2xl font-bold text-text-primary mb-6">
+                            Upload Details
+                        </h3>
 
-            <!-- Upload Info -->
-            @if (selectedFiles.Count > 0)
-            {
-                <div class="mt-6 bg-white rounded-xl shadow-lg p-6">
-                    <h3 class="text-lg font-semibold text-text-primary mb-4">
-                        Selected Files (@selectedFiles.Count)
-                    </h3>
-                    <div class="space-y-2 max-h-48 overflow-y-auto">
-                        @foreach (var file in selectedFiles)
-                        {
-                            <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                                <div class="flex items-center space-x-3">
-                                    <i class="fa-solid fa-image text-primary-600"></i>
-                                    <span class="text-sm text-text-primary">@file.Name</span>
-                                </div>
-                                <span class="text-xs text-text-muted">@FormatFileSize(file.Size)</span>
+                        <!-- Form -->
+                        <div class="flex-1 space-y-6 mb-6">
+                            <!-- Uploader Name -->
+                            <div>
+                                <label class="block text-sm font-semibold text-text-primary mb-2">
+                                    Your Name
+                                </label>
+                                <input type="text"
+                                       @bind="uploaderName"
+                                       placeholder="Enter your name"
+                                       class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-primary-600 focus:outline-none transition duration-200" />
                             </div>
-                        }
+
+                            <!-- Event Topic -->
+                            <div>
+                                <label class="block text-sm font-semibold text-text-primary mb-2">
+                                    Event Topic
+                                </label>
+                                <input type="text"
+                                       @bind="eventTopic"
+                                       placeholder="Enter the event topic"
+                                       class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-primary-600 focus:outline-none transition duration-200" />
+                            </div>
+
+                            <!-- Summary -->
+                            <div class="p-4 bg-gray-50 rounded-lg">
+                                <p class="text-sm text-text-secondary mb-2">
+                                    <span class="font-semibold">Files to upload:</span> @selectedFiles.Count @(selectedFiles.Count == 1 ? "image" : "images")
+                                </p>
+                            </div>
+                        </div>
+
+                        <!-- Submit Button -->
+                        <button @onclick="HandleFinalUpload"
+                                disabled="@(!IsUploadValid())"
+                                class="w-full py-4 font-semibold rounded-lg transition duration-200 @(IsUploadValid() ? "bg-primary-600 hover:bg-primary-700 text-white shadow-lg transform hover:scale-[1.01] cursor-pointer" : "bg-primary-200 text-primary-400 shadow cursor-not-allowed")">
+                            <i class="fa-solid fa-cloud-arrow-up mr-2"></i>
+                            Upload Images
+                        </button>
                     </div>
-                    <button @onclick="HandleUpload"
-                            class="mt-4 w-full py-3 bg-primary-600 hover:bg-primary-700 text-white font-semibold rounded-lg transition duration-200 transform hover:scale-[1.01]">
-                        <i class="fa-solid fa-upload mr-2"></i>
-                        Upload @selectedFiles.Count @(selectedFiles.Count == 1 ? "Image" : "Images")
-                    </button>
-                </div>
-            }
+                }
+                else if (selectedFiles.Count == 0)
+                {
+                    <div class="flex flex-col items-center justify-center space-y-8 p-8 sm:p-12" style="min-height: 60vh;">
+                        <!-- Icon -->
+                        <div class="text-primary-600">
+                            <i class="fa-solid fa-images text-8xl sm:text-9xl"></i>
+                        </div>
+
+                        <!-- Text -->
+                        <div class="text-center space-y-3 px-4">
+                            <h2 class="text-2xl sm:text-3xl font-bold text-text-primary">
+                                Upload Images
+                            </h2>
+                            <p class="text-base sm:text-lg text-text-secondary max-w-md">
+                                Select images from your device to upload
+                            </p>
+                            <p class="text-sm text-text-muted">
+                                Supported formats: JPG, PNG, GIF, WebP
+                            </p>
+                        </div>
+
+                        <!-- Button -->
+                        <label for="fileInput" class="cursor-pointer">
+                            <div class="px-8 py-4 bg-primary-600 hover:bg-primary-700 text-white font-semibold rounded-lg shadow-lg transition duration-200 transform hover:scale-[1.02]">
+                                <i class="fa-solid fa-folder-open mr-2"></i>
+                                Select Files
+                            </div>
+                        </label>
+
+                        <!-- Hidden File Input -->
+                        <InputFile id="fileInput"
+                                  OnChange="HandleFileSelected"
+                                  multiple
+                                  accept="image/*"
+                                  class="hidden" />
+                    </div>
+                }
+                else
+                {
+                    <div class="flex flex-col p-8 sm:p-12" style="height: 60vh;">
+                        <!-- Back Button - Top Left -->
+                        <button @onclick="ClearFiles"
+                                class="self-start mb-6 px-4 py-2 text-text-secondary hover:text-primary-600 font-medium transition duration-200 flex items-center space-x-2">
+                            <i class="fa-solid fa-arrow-left"></i>
+                            <span>Back</span>
+                        </button>
+
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-xl sm:text-2xl font-bold text-text-primary">
+                                Selected Files (@selectedFiles.Count)
+                            </h3>
+                            <label for="addMoreInput" class="cursor-pointer px-4 py-2 bg-white hover:bg-gray-50 text-primary-600 font-medium border-2 border-primary-600 rounded-lg transition duration-200 flex items-center space-x-2">
+                                <i class="fa-solid fa-plus"></i>
+                                <span>Add More</span>
+                            </label>
+                            <InputFile id="addMoreInput"
+                                      OnChange="HandleAddMoreFiles"
+                                      multiple
+                                      accept="image/*"
+                                      class="hidden" />
+                        </div>
+
+                        <!-- File List -->
+                        <div class="flex-1 min-h-0 space-y-3 overflow-y-auto mb-6">
+                            @foreach (var file in selectedFiles)
+                            {
+                                <div class="flex items-center gap-4 p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition duration-150">
+                                    <!-- File Icon -->
+                                    <div class="w-10 h-10 bg-primary-100 rounded-lg flex-shrink-0 flex items-center justify-center">
+                                        <i class="fa-solid fa-image text-primary-600"></i>
+                                    </div>
+
+                                    <!-- File Info -->
+                                    <div class="flex-1 min-w-0">
+                                        <p class="text-sm sm:text-base text-text-primary truncate">@file.Name</p>
+                                        <p class="text-xs sm:text-sm text-text-muted">@FormatFileSize(file.Size)</p>
+                                    </div>
+
+                                    <!-- Delete Button -->
+                                    <button @onclick="() => RemoveFile(file)"
+                                            class="flex-shrink-0 w-8 h-8 flex items-center justify-center text-red-600 hover:bg-red-100 rounded-lg transition duration-150">
+                                        <i class="fa-solid fa-trash text-sm"></i>
+                                    </button>
+                                </div>
+                            }
+                        </div>
+
+                        <!-- Upload Button - Bottom -->
+                        <button @onclick="HandleUpload"
+                                class="w-full py-4 bg-primary-600 hover:bg-primary-700 text-white font-semibold rounded-lg shadow-lg transition duration-200 transform hover:scale-[1.01]">
+                            <i class="fa-solid fa-upload mr-2"></i>
+                            Upload @selectedFiles.Count @(selectedFiles.Count == 1 ? "Image" : "Images")
+                        </button>
+                    </div>
+                }
+            </div>
         </div>
     </main>
 </div>

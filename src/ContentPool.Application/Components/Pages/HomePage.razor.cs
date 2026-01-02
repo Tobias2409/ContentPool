@@ -7,6 +7,9 @@ public partial class HomePage : ComponentBase
 {
     private bool isDragging = false;
     private List<IBrowserFile> selectedFiles = new();
+    private bool showUploadDetailsPage = false;
+    private string uploaderName = "";
+    private string eventTopic = "";
 
     private void HandleDragEnter()
     {
@@ -26,17 +29,44 @@ public partial class HomePage : ComponentBase
     private void HandleFileSelected(InputFileChangeEventArgs e)
     {
         selectedFiles.Clear();
+
         foreach (var file in e.GetMultipleFiles())
         {
             selectedFiles.Add(file);
         }
     }
 
-    private async Task HandleUpload()
+    private void HandleAddMoreFiles(InputFileChangeEventArgs e)
     {
-        // TODO: Implement upload logic
-        // For now, just clear the selected files
+        foreach (var file in e.GetMultipleFiles())
+        {
+            selectedFiles.Add(file);
+        }
+    }
+
+    private void HandleUpload()
+    {
+        showUploadDetailsPage = true;
+    }
+
+    private async Task HandleFinalUpload()
+    {
+        // TODO: Implement actual upload logic with uploaderName and eventTopic
+        // For now, just clear everything
         selectedFiles.Clear();
+        uploaderName = "";
+        eventTopic = "";
+        showUploadDetailsPage = false;
+    }
+
+    private void BackToFileList()
+    {
+        showUploadDetailsPage = false;
+    }
+
+    private bool IsUploadValid()
+    {
+        return !string.IsNullOrWhiteSpace(uploaderName) && !string.IsNullOrWhiteSpace(eventTopic);
     }
 
     private string GetDropZoneClass()
@@ -57,5 +87,15 @@ public partial class HomePage : ComponentBase
             len = len / 1024;
         }
         return $"{len:0.##} {sizes[order]}";
+    }
+
+    private void ClearFiles()
+    {
+        selectedFiles.Clear();
+    }
+
+    private void RemoveFile(IBrowserFile file)
+    {
+        selectedFiles.Remove(file);
     }
 }
